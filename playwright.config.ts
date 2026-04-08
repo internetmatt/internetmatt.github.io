@@ -2,6 +2,9 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests/e2e',
+  reporter: process.env.CI
+    ? [['list'], ['junit', { outputFile: 'test-results/results.xml' }]]
+    : [['list']],
   use: {
     baseURL: 'http://localhost:4321',
   },

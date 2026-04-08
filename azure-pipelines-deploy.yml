@@ -7,8 +7,39 @@ pool:
   vmImage: ubuntu-latest
 
 stages:
+  - stage: provision
+    displayName: Provision infrastructure (Bicep)
+    jobs:
+      - job: bicep
+        displayName: "Deploy infra/main.bicep to Azure"
+        steps:
+          - task: AzureCLI@2
+            displayName: az deployment group create
+            inputs:
+              azureSubscription: $(AZURE_SERVICE_CONNECTION)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                az group create \
+                  --name $(AZURE_RESOURCE_GROUP) \
+                  --location eastus2 \
+                  --output none
+
+                token=$(az deployment group create \
+                  --resource-group $(AZURE_RESOURCE_GROUP) \
+                  --template-file infra/main.bicep \
+                  --parameters infra/main.bicepparam \
+                  --name internetmatt-web \
+                  --query "properties.outputs.deploymentToken.value" \
+                  --output tsv)
+
+                echo "##vso[task.setvariable variable=deploymentToken;isOutput=true;issecret=true]$token"
+
   - stage: build_and_deploy
     displayName: Build & Deploy to Azure Static Web Apps
+    dependsOn: provision
+    variables:
+      deploymentToken: $[ stageDependencies.provision.bicep.outputs['deploymentToken'] ]
     jobs:
       - job: deploy
         displayName: "Build Astro site and deploy"
@@ -26,7 +57,7 @@ stages:
             inputs:
               app_location: "/"
               output_location: "dist"
-              azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APPS_API_TOKEN)
+              azure_static_web_apps_api_token: $(deploymentToken)
 
   - stage: lighthouse
     displayName: Lighthouse audit

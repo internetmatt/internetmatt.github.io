@@ -1,0 +1,24 @@
+{
+  "name": "internetmatt-github-io",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "check": "astro check",
+    "test": "playwright test",
+    "lhci": "lhci autorun"
+  },
+  "dependencies": {
+    "astro": "^5.5.5"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.8",
+    "@lhci/cli": "^0.15.1",
+    "@playwright/test": "^1.59.1",
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,15 +1,154 @@
 ---
 ---
 
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="generator" content={Astro.generator} />
-    <title>internetmatt</title>
-  </head>
-  <body>
-    <h1>internetmatt</h1>
-  </body>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#05070b" />
+<title>internetmatt — busy building</title>
+<style>
+  :root{color-scheme:dark;--bg:#05070b;--fg:#f5f7fb;--muted:#9aa3b2;--line:rgba(150,190,255,.16);--glow:rgba(121,163,255,.7)}
+  *{box-sizing:border-box}
+  html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--fg)}
+  body{touch-action:none}
+  canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+  .vignette{position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 45%,transparent 0 35%,rgba(0,0,0,.18) 68%,rgba(0,0,0,.6) 100%)}
+  main{position:fixed;inset:0;display:grid;place-items:center;padding:24px;pointer-events:none}
+  .card{display:flex;flex-direction:column;align-items:center;text-align:center;gap:18px;transform:translateY(-1vh);pointer-events:auto}
+  h1{margin:0;font-size:clamp(28px,5vw,64px);font-weight:500;letter-spacing:-.045em;text-shadow:0 0 34px rgba(130,170,255,.18)}
+  .socials{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px 14px;max-width:760px}
+  .socials a{color:var(--muted);text-decoration:none;font-size:clamp(12px,1.4vw,14px);letter-spacing:.02em;transition:color .18s ease,transform .18s ease,text-shadow .18s ease;padding:6px 2px}
+  .socials a:hover,.socials a:focus-visible{color:var(--fg);transform:translateY(-1px);text-shadow:0 0 16px rgba(121,163,255,.5);outline:none}
+  .dot{width:3px;height:3px;border-radius:999px;background:#4d5563;opacity:.8}
+  .hint{position:fixed;bottom:max(18px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:rgba(190,200,216,.38);pointer-events:none;white-space:nowrap}
+  @media (max-width:560px){.dot{display:none}.socials{gap:5px 12px;max-width:330px}.card{gap:16px}.hint{font-size:9px}}
+  @media (prefers-reduced-motion:reduce){.hint{display:none}}
+</style>
+</head>
+<body>
+<canvas id="grid" aria-hidden="true"></canvas>
+<div class="vignette" aria-hidden="true"></div>
+<main>
+  <section class="card" aria-label="internetmatt status">
+    <h1>busy building</h1>
+    <nav class="socials" aria-label="Social links">
+      <a href="https://www.linkedin.com/in/ternetmatt" target="_blank" rel="noreferrer">LinkedIn</a><span class="dot"></span>
+      <a href="https://github.com/internetmatt" target="_blank" rel="noreferrer">GitHub</a><span class="dot"></span>
+      <a href="https://www.instagram.com/internetmatte" target="_blank" rel="noreferrer">Instagram</a><span class="dot"></span>
+      <a href="https://x.com/internetmatte" target="_blank" rel="noreferrer">X / Twitter</a><span class="dot"></span>
+      <a href="https://www.tiktok.com/@internetmatte" target="_blank" rel="noreferrer">TikTok</a><span class="dot"></span>
+      <a href="https://www.youtube.com/@internetmatte" target="_blank" rel="noreferrer">YouTube</a>
+    </nav>
+  </section>
+</main>
+<div class="hint">move • touch • drag</div>
+<script is:inline>
+(() => {
+  const canvas = document.getElementById('grid');
+  const ctx = canvas.getContext('2d', { alpha: false });
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let w=0,h=0,dpr=1,t=0;
+  let pointer={x:innerWidth/2,y:innerHeight/2,tx:innerWidth/2,ty:innerHeight/2,active:false};
+
+  function resize(){
+    dpr=Math.min(devicePixelRatio||1,2);
+    w=innerWidth; h=innerHeight;
+    canvas.width=Math.round(w*dpr); canvas.height=Math.round(h*dpr);
+    canvas.style.width=w+'px'; canvas.style.height=h+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+
+  function onPoint(x,y){ pointer.tx=x; pointer.ty=y; pointer.active=true; }
+  addEventListener('pointermove',e=>onPoint(e.clientX,e.clientY),{passive:true});
+  addEventListener('pointerdown',e=>onPoint(e.clientX,e.clientY),{passive:true});
+  addEventListener('pointerleave',()=>pointer.active=false,{passive:true});
+
+  function onTouch(e){
+    const touch=e.touches && e.touches[0];
+    if(touch) onPoint(touch.clientX,touch.clientY);
+  }
+  addEventListener('touchstart',onTouch,{passive:true});
+  addEventListener('touchmove',onTouch,{passive:true});
+  addEventListener('touchend',()=>pointer.active=false,{passive:true});
+  addEventListener('touchcancel',()=>pointer.active=false,{passive:true});
+  addEventListener('resize',resize,{passive:true});
+  resize();
+
+  function draw(){
+    pointer.x += (pointer.tx-pointer.x)*.105;
+    pointer.y += (pointer.ty-pointer.y)*.105;
+    t += reduced ? 0 : .008;
+
+    ctx.fillStyle='#05070b';
+    ctx.fillRect(0,0,w,h);
+
+    const spacing = Math.max(34, Math.min(54, w/22));
+    const radius = Math.min(w,h)*.26;
+    const ox = (w % spacing)/2;
+    const oy = (h % spacing)/2;
+
+    const halo=ctx.createRadialGradient(pointer.x,pointer.y,0,pointer.x,pointer.y,radius*1.35);
+    halo.addColorStop(0,'rgba(72,108,190,.10)');
+    halo.addColorStop(.5,'rgba(45,70,125,.035)');
+    halo.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=halo; ctx.fillRect(0,0,w,h);
+
+    ctx.lineWidth=1;
+    for(let gy=-spacing; gy<h+spacing; gy+=spacing){
+      ctx.beginPath();
+      let first=true;
+      for(let gx=-spacing; gx<w+spacing; gx+=10){
+        const dx=gx-pointer.x, dy=gy-pointer.y;
+        const dist=Math.hypot(dx,dy);
+        const fall=Math.max(0,1-dist/radius);
+        const wave=Math.sin(dist*.025-t*7)*2.2*fall;
+        const pull=fall*fall*20;
+        const px=gx-(dx/(dist||1))*pull;
+        const py=gy-(dy/(dist||1))*pull+wave;
+        if(first){ctx.moveTo(px,py);first=false}else ctx.lineTo(px,py);
+      }
+      ctx.strokeStyle='rgba(126,160,219,.105)';ctx.stroke();
+    }
+    for(let gx=-spacing; gx<w+spacing; gx+=spacing){
+      ctx.beginPath();
+      let first=true;
+      for(let gy=-spacing; gy<h+spacing; gy+=10){
+        const dx=gx-pointer.x, dy=gy-pointer.y;
+        const dist=Math.hypot(dx,dy);
+        const fall=Math.max(0,1-dist/radius);
+        const wave=Math.cos(dist*.024-t*6.5)*2.2*fall;
+        const pull=fall*fall*20;
+        const px=gx-(dx/(dist||1))*pull+wave;
+        const py=gy-(dy/(dist||1))*pull;
+        if(first){ctx.moveTo(px,py);first=false}else ctx.lineTo(px,py);
+      }
+      ctx.strokeStyle='rgba(126,160,219,.105)';ctx.stroke();
+    }
+
+    for(let gy=oy; gy<h; gy+=spacing){
+      for(let gx=ox; gx<w; gx+=spacing){
+        const dx=gx-pointer.x, dy=gy-pointer.y;
+        const dist=Math.hypot(dx,dy);
+        const fall=Math.max(0,1-dist/radius);
+        const pull=fall*fall*16;
+        const px=gx-(dx/(dist||1))*pull;
+        const py=gy-(dy/(dist||1))*pull;
+        const r=1.05+fall*2.3;
+        ctx.beginPath();ctx.arc(px,py,r,0,Math.PI*2);
+        ctx.fillStyle=`rgba(157,190,255,${0.14+fall*.72})`;ctx.fill();
+        if(fall>.55){
+          ctx.beginPath();ctx.arc(px,py,r*3.2,0,Math.PI*2);
+          ctx.fillStyle=`rgba(104,145,255,${fall*.07})`;ctx.fill();
+        }
+      }
+    }
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>
+</body>
 </html>

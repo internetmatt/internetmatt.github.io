@@ -13,7 +13,7 @@
     "lhci": "lhci autorun"
   },
   "dependencies": {
-    "astro": "^7.1.1"
+    "astro": "^7.2.8"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.8",

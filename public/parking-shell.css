@@ -1,0 +1,167 @@
+/* ────────────────────────────────────────────────────────────────────────
+   Projecto Parking — mysterious operator surface
+   Tokens: libs/design-tokens (Fluent) + Projecto DS dark operator
+   Markup contract: data-ui primitives shared with @internetmatt/declarative-ui
+   LED: parking-player.js (billboard pitch-6)
+   ──────────────────────────────────────────────────────────────────────── */
+
+/* Fluent tokens inlined from @projecto/design-tokens (libs/design-tokens/src/tokens.css) */
+:root {
+  --colors-primary-default: #0078d4;
+  --colors-secondary-default: #50e6ff;
+  --colors-accent-default: #7fba00;
+  --typography-font-family-base: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
+  --typography-font-family-mono: "SF Mono", "Cascadia Code", "Courier New", monospace;
+
+  --pj-dk-bg: #0f1117;
+  --pj-dk-bg-alt: #0a0a0f;
+  --pj-dk-surface: #1a1d2e;
+  --pj-dk-surface-2: #12151f;
+  --pj-dk-border: #2a2d3e;
+  --pj-dk-text: #e8eaf0;
+  --pj-dk-muted: #7b8096;
+  --pj-dk-positive: #00c9a7;
+
+  --ui-font-sans: var(--typography-font-family-base, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+  --ui-font-mono: var(--typography-font-family-mono, "SF Mono", "Cascadia Code", monospace);
+  --ui-bg: var(--pj-dk-bg);
+  --ui-text: var(--pj-dk-text);
+  --ui-text-muted: var(--pj-dk-muted);
+  --ui-text-strong: #fff;
+  --ui-accent: var(--pj-dk-positive);
+  --ui-accent-strong: var(--colors-primary-default, #0078d4);
+  --parking-led-agent: var(--pj-dk-positive);
+}
+
+html[data-realm="glitch"] { --parking-led-agent: #00c9a7; --ui-accent: #00c9a7; }
+html[data-realm="salty"]  { --parking-led-agent: #50e6ff; --ui-accent: #50e6ff; }
+html[data-realm="games"]  { --parking-led-agent: #0078d4; --ui-accent: #0078d4; }
+html[data-realm="music"]  { --parking-led-agent: #2b88d8; --ui-accent: #2b88d8; }
+html[data-realm="hub"]    { --parking-led-agent: #00c9a7; --ui-accent: #00c9a7; }
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { color-scheme: dark; }
+body {
+  min-height: 100vh;
+  background: #0c0c0c;
+  color: var(--ui-text);
+  font-family: var(--ui-font-sans);
+  overflow: hidden;
+}
+
+/* Billboard stage */
+.parking-led-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: #0c0c0c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.parking-led-scale { transform-origin: center center; will-change: transform; }
+.parking-led-canvas {
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+body.has-parking-led > :not(.parking-led-stage) {
+  position: relative;
+  z-index: 1;
+}
+
+/* Minimal chrome — wordmark only, no college-project panels */
+:where([data-ui="shell"].parking-minimal),
+.parking-minimal {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+:where([data-ui="wordmark"]) {
+  color: var(--ui-text-strong);
+  font: 600 clamp(1.75rem, 5vw, 2.75rem) / 1.1 var(--ui-font-sans);
+  letter-spacing: -0.03em;
+  text-decoration: none;
+}
+
+:where([data-ui="whisper"]) {
+  color: var(--ui-text-muted);
+  font: 400 0.8rem / 1.4 var(--ui-font-mono);
+  letter-spacing: 0.14em;
+  text-transform: lowercase;
+  max-width: 28ch;
+}
+
+:where([data-ui="whisper"] a) {
+  color: color-mix(in srgb, var(--ui-accent) 75%, var(--ui-text-muted));
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--ui-accent) 35%, transparent);
+}
+:where([data-ui="whisper"] a:hover) {
+  color: var(--ui-accent);
+}
+
+/* /now agent social */
+.now-page [data-ui="feed"] {
+  display: grid;
+  gap: 0.85rem;
+  max-width: 36rem;
+  margin-top: 0.5rem;
+}
+.now-page [data-ui="blurp"] p {
+  color: var(--ui-text);
+  font: 400 0.95rem / 1.45 var(--ui-font-sans);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.now-page [data-ui="badge"] {
+  color: var(--ui-accent);
+  font: 500 0.7rem / 1 var(--ui-font-mono);
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  margin-right: 0.35rem;
+}
+.now-page [data-ui="socials"] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-top: 0.75rem;
+}
+.now-page [data-ui="social"] {
+  color: var(--ui-text-muted);
+  font: 500 0.75rem / 1 var(--ui-font-mono);
+  letter-spacing: 0.1em;
+  text-transform: lowercase;
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--ui-accent) 25%, transparent);
+}
+.now-page [data-ui="social"]:hover {
+  color: var(--ui-accent);
+}
+
+/* Hide legacy verbose parking chrome if an old page is staged */
+.parking-minimal .parking-card,
+.parking-minimal .hub-funnel,
+.parking-minimal .glitch-commerce,
+.parking-minimal .parking-context,
+.parking-minimal .parking-actions,
+.parking-minimal form,
+.parking-minimal [data-ui="panel"],
+.parking-minimal [data-ui="eyebrow"],
+.parking-minimal [data-ui="lede"],
+.parking-minimal [data-ui="button"],
+.parking-minimal .parking-meta,
+.parking-minimal .parking-pill {
+  display: none !important;
+}
+
+a { color: inherit; }
